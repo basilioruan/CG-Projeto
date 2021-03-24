@@ -14,8 +14,8 @@
 
 CXX = g++
 CXXFLAGS = -Wall
-LDLIBS = -lGL -lglut -lGLU
-BINS = abajur
+LDLIBS = -lGL -lglut -lGLU -lSOIL
+BINS = abajur checker
 
 # Criar executaveis a partir de objetos usando compilador de C++
 %: %.o

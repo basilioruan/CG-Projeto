@@ -1,5 +1,6 @@
 #include <GL/glut.h>
 #include <stdlib.h>
+#include <SOIL/SOIL.h>
 #include <iostream>
 
 using namespace std;
@@ -7,15 +8,34 @@ using namespace std;
 static int tampa = 0, rotacao = 100;
 int xGlobal = 0;
 bool apagado = false;
+
 GLfloat R = 1;
 GLfloat G = 1;
 GLfloat B = 0;
 
-#define AZUL     0.0, 0.0, 1.0
-#define AMARELO  1.0, 1.0, 0.0
 #define BRANCO    1, 1, 1
-#define corAleatoria 0.3, 1, 0.5
 #define CINZA 0.2, 0.2, 0.2
+#define	checkImageWidth 64
+#define	checkImageHeight 64
+
+static GLubyte checkImage[checkImageHeight][checkImageWidth][4];
+
+static GLuint texName;
+
+void makeCheckImage(void)
+{
+   int i, j, c;
+    
+   for (i = 0; i < checkImageHeight; i++) {
+      for (j = 0; j < checkImageWidth; j++) {
+         c = ((((i&0x8)==0)^((j&0x8))==0))*255;
+         checkImage[i][j][0] = (GLubyte) c;
+         checkImage[i][j][1] = (GLubyte) c;
+         checkImage[i][j][2] = (GLubyte) c;
+         checkImage[i][j][3] = (GLubyte) 255;
+      }
+   }
+}
 
 void init(void) 
 {
@@ -26,6 +46,20 @@ void init(void)
    glEnable(GL_LIGHT0);
    glEnable(GL_COLOR_MATERIAL);
    glEnable(GL_DEPTH_TEST);
+
+   
+   
+   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+   glGenTextures(1, &texName);
+   glBindTexture(GL_TEXTURE_2D, texName);
+
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+   
 
    //luz global
    float luzAmbienteGlobal[] = {0.5f, 0.5f, 0.5f, 1.0f};
@@ -51,10 +85,58 @@ void display(void)
 {
    glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
    glColor3f(BRANCO);
+
+   int width, height;
+
+   unsigned char* image = SOIL_load_image("img2.jpg", &width, &height, 0, SOIL_LOAD_RGB);
+
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);   
+
+   SOIL_free_image_data(image);
+
+   glEnable(GL_TEXTURE_2D);
+
+   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+   glBindTexture(GL_TEXTURE_2D, texName);
+
+   // glBegin(GL_QUADS);
+   // glTexCoord2f(0.0, 0.0); glVertex3f(-2.0, -1.0, 0.0);
+   // glTexCoord2f(0.0, 1.0); glVertex3f(-2.0, 1.0, 0.0);
+   // glTexCoord2f(1.0, 1.0); glVertex3f(0.0, 1.0, 0.0);
+   // glTexCoord2f(1.0, 0.0); glVertex3f(0.0, -1.0, 0.0);
+
+   // glTexCoord2f(0.0, 0.0); glVertex3f(1.0, -1.0, 0.0);
+   // glTexCoord2f(0.0, 1.0); glVertex3f(1.0, 1.0, 0.0);
+   // glTexCoord2f(1.0, 1.0); glVertex3f(2.41421, 1.0, -1.41421);
+   // glTexCoord2f(1.0, 0.0); glVertex3f(2.41421, -1.0, -1.41421);
+   // glEnd();
+   // glDisable(GL_TEXTURE_2D);
+
+   glBegin(GL_QUADS);
+   glTexCoord2f(0.0, 0.0); glVertex3f(-4.0, 1.0, -2.0);
+   glTexCoord2f(0.0, 1.0); glVertex3f(-4.0, 3.0, -2.0);
+   glTexCoord2f(1.0, 1.0); glVertex3f(-1.0, 3.0, -2.0);
+   glTexCoord2f(1.0, 0.0); glVertex3f(-1.0, 1.0, -2.0);
+   glEnd();
+
+
+   image = SOIL_load_image("img.jpeg", &width, &height, 0, SOIL_LOAD_RGB);
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image); 
+   SOIL_free_image_data(image);
+
+   glBegin(GL_QUADS);
+   glTexCoord2f(0.0, 0.0); glVertex3f(0.0, 1.0, -2.0);
+   glTexCoord2f(0.0, 1.0); glVertex3f(0.0, 3.0, -2.0);
+   glTexCoord2f(1.0, 1.0); glVertex3f(2.0, 3.0, -2.0);
+   glTexCoord2f(1.0, 0.0); glVertex3f(2.0, 1.0, -2.0);
+   glEnd();
+
+   glDisable(GL_TEXTURE_2D);
    
    glPushMatrix();
    glRotatef(10.0f,1.0f,0.0f,0.0f);
    glRotatef((GLfloat)rotacao, 0, 1, 0);
+
 
    //FACE 1
    glColor3f(CINZA);
@@ -166,7 +248,10 @@ void display(void)
    glPopMatrix();   
    glPopMatrix();   
    glPopMatrix();
+   
    glPopMatrix();
+
+   
 
    glutSwapBuffers();
 }
